@@ -3,8 +3,9 @@ class TreeNode {
     localTransform = mat4();
     children = [];
     drawn = false;
+    parent = null;
 }
-treeAsArray = [4,3,3,2] // 1 trunk, 4 branches that have 3 branches that have 3 branches that have 2 branches
+treeAsArray = [4,3,3,2]; // 1 trunk, 4 branches that have 3 branches that have 3 branches that have 2 branches
 function constructTree(arrayIn)
 {
     let root = new TreeNode();
@@ -21,11 +22,14 @@ function constructTree(arrayIn)
         else randAmnt = 1;
 
         randomisedCount = arrayIn[i] + ((Math.floor((Math.random() * 3)) - 1) * randAmt);
-        for (let j = 0; j < randomisedCount; j++) {
+        for (let j = 0; j < arrayIn[i]; j++) {
             for (const n of nodeList) {
                 const t = new TreeNode();
                 t.id = index;
                 //randomise localTransform here
+
+                if (i !== 0) t.parent = n;
+
                 n.children.push(t);
                 index++;
             }

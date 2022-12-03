@@ -17,6 +17,8 @@ let cBuffer;
 let program;
 let selector;
 
+let mainVertexList = [];
+
 let idRGBAConvert;
 let pixel;
 
@@ -35,6 +37,7 @@ window.onload = function init() {
     //  Load shaders and initialize attribute buffers
     //
     program = initShaders(gl, "vertex-shader", "fragment-shader");
+    shading = initShaders(gl, "shading-shader", "fragment-shader");
     selector = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);
 
