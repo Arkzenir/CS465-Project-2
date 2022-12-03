@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+
+<style>
+    body {background-color: rgb(36, 37, 38);}
+    label {color: antiquewhite;}
+    .parent {
+        margin: 2rem;
+        text-align: center;
+    }
+    .child {
+        display: inline-block;
+        padding-left: 1%;
+        padding-right: 1%;
+        vertical-align: middle;
+    }
+</style>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+attribute vec4 vColor;
+
+varying vec4 fColor;
+
+void main()
+{
+    gl_Position = vPosition;
+    fColor = vColor;
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+
+precision mediump float;
+
+varying vec4 fColor;
+void main()
+{
+    gl_FragColor = fColor;
+}
+</script>
+
+<body>
+<div class = "parent">
+    <div class = "child">
+        <div class="app">
+            <div class="controls">
+                <div>
+                    <label>
+                        Base rotation -180 <input id="slide-base" type="range"
+                         min="-180" max="180" step="10" value="0"
+                          />
+                         180
+                    </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class = "child">
+        <div class = "canvas">
+            <canvas id="gl-canvas" width="600" height="600"></canvas>
+        </div>
+    </div>
+</div>
+</body>
+
+<script type="text/javascript" src="Common/webgl-utils.js"></script>
+<script type="text/javascript" src="Common/initShaders.js"></script>
+<script type="text/javascript" src="Common/MV.js"></script>
+<script type="text/javascript" src="TransformUtils.js"></script>
+<script type="text/javascript" src="TreeNode.js"></script>
+<script type="text/javascript" src="main.js"></script>
+
+</html>
