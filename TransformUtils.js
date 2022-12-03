@@ -41,20 +41,20 @@ function generateCylinder(cr = 0.5, cyheight = 1, ratio = 0.75) {
         vec4((-1 * (Math.cos(cylinderAngle * 3) * cr)) * ratio, cyheight, (Math.sin(cylinderAngle * 3) * cr), 1.0),
         vec4((-1 * (Math.cos(cylinderAngle * 4) * cr)) * ratio, cyheight, (Math.sin(cylinderAngle * 4) * cr), 1.0),
 
-        vec4(0, 0, cr, 1.0), // bottom
+        vec4(0, cyheight, cr, 1.0), // bottom
         vec4((Math.sin(cylinderAngle) * cr) * ratio, cyheight, (Math.cos(cylinderAngle) * cr), 1.0),
         vec4((Math.sin(cylinderAngle * 2) * cr) * ratio, cyheight, (Math.cos(cylinderAngle * 2) * cr), 1.0),
         vec4((Math.sin(cylinderAngle * 3) * cr) * ratio, cyheight, (Math.cos(cylinderAngle * 3) * cr), 1.0),
         vec4((Math.sin(cylinderAngle * 4) * cr) * ratio, cyheight, (Math.cos(cylinderAngle * 4) * cr), 1.0),
 
-        vec4(cr, cyheight, 0, 1.0), // right
-        vec4((Math.cos(cylinderAngle) * cr) * ratio, cyheight, 0 - Math.sin(cylinderAngle), 1.0),
+        vec4(cr * ratio, cyheight, 0, 1.0), // right
+        vec4((Math.cos(cylinderAngle) * cr) * ratio, cyheight, 0 - (Math.sin(cylinderAngle) * cr), 1.0),
         vec4((Math.cos(cylinderAngle * 2) * cr) * ratio, cyheight, 0 - (Math.sin(cylinderAngle * 2) * cr), 1.0),
         vec4((Math.cos(cylinderAngle * 3) * cr) * ratio, cyheight, 0 - (Math.sin(cylinderAngle * 3) * cr), 1.0),
         vec4((Math.cos(cylinderAngle * 4) * cr) * ratio, cyheight, 0 - (Math.sin(cylinderAngle * 4) * cr), 1.0),
 
         vec4(0, cyheight, -1 * cr, 1.0), // top
-        vec4(0 - (Math.sin(cylinderAngle) * cr) * ratio, cyheight, -1 * Math.cos(cylinderAngle), 1.0),
+        vec4(0 - (Math.sin(cylinderAngle) * cr) * ratio, cyheight, -1 * (Math.cos(cylinderAngle) * cr), 1.0),
         vec4(0 - (Math.sin(cylinderAngle * 2) * cr) * ratio, cyheight, -1 * (Math.cos(cylinderAngle * 2) * cr), 1.0),
         vec4(0 - (Math.sin(cylinderAngle * 3) * cr) * ratio, cyheight, -1 * (Math.cos(cylinderAngle * 3) * cr), 1.0),
         vec4(0 - (Math.sin(cylinderAngle * 4) * cr) * ratio, cyheight, -1 * (Math.cos(cylinderAngle * 4) * cr), 1.0)
