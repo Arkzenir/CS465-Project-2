@@ -40,7 +40,34 @@ function constructTree(arrayIn)
         }
         nodeList = tempList;
     }
-
     return root;
+}
 
+function traverseTree(root){
+    if (root == null){
+        return;
+    }
+    nodeMatrices = [];
+    nodeMatrices.push(root.localTransform);
+    finalMatrices = [];
+    finalMatrices.push(root.localTransform);
+    for (let i = 0; i < node.children.length; i++){
+        traverseHelper(node.children[i], nodeMatrices, finalMatrices);
+    }
+    return finalMatrices;
+}
+
+function traverseHelper(node, nodeMatrices, finalMatrices){
+    nodeMatrices.push(node.localTransform);
+    if ( node.children.length == 0){        // base case
+        for ( let i = 1; i < nodeMatrices.length; i++){
+            nodeMatrices[i] = mult(nodeMatrices[i-1], nodeMatrices[i]);
+        }
+        finalMatrices.push(nodeMatrices[nodeMatrices.length - 1]);
+    }
+    else {
+        for (let i = 0; i < node.children.length; i++){
+            traverseHelper(node.children[i], nodeMatrices);
+        }
+    }
 }
