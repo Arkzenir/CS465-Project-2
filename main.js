@@ -2,7 +2,7 @@ let canvas;
 let rect;
 let gl;
 
-const MAX_CYLINDER_COUNT = 150;
+const MAX_CYLINDER_COUNT = 300;
 const VERTICES_PER_CYLINDER = 240;
 const maxNumVertices = MAX_CYLINDER_COUNT * VERTICES_PER_CYLINDER;
 let numOfVertices = 0;
@@ -47,7 +47,7 @@ const colors = [
     vec4(1.0, 1.0, 1.0, 1.0)   // white
 ];
 
-const lightPosition = vec4(1.0, 1.0, 1.0, 0.0);
+const lightPosition = vec4(5.0, 5.0, 5.0, 0.0);
 const lightAmbient = vec4(0.2, 0.2, 0.2, 1.0);
 const lightDiffuse = vec4(1.0, 1.0, 1.0, 1.0);
 const lightSpecular = vec4(1.0, 1.0, 1.0, 1.0);
@@ -128,12 +128,10 @@ window.onload = function init() {
     selector = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);
     modelViewMatrix = mat4();
-    projectionMatrix = ortho(-2, 2, -2, 2, -2, 2);
+    projectionMatrix = ortho(-4, 4, -4, 4, -4, 4);
 
-    gl.uniformMatrix4fv( gl.getUniformLocation(program, "modelViewMatrix"),  false, flatten(modelViewMatrix) );
     gl.uniformMatrix4fv( gl.getUniformLocation(program, "projectionMatrix"),  false, flatten(projectionMatrix) );
     gl.useProgram(shading);
-    gl.uniformMatrix4fv( gl.getUniformLocation(shading, "modelViewMatrix"),  false, flatten(modelViewMatrix) );
     gl.uniformMatrix4fv( gl.getUniformLocation(shading, "projectionMatrix"),  false, flatten(projectionMatrix) );
     gl.useProgram(program);
 
@@ -193,12 +191,12 @@ window.onload = function init() {
 
     document.getElementById("flat").addEventListener("click", function(event) {
         buildTree(randomTreeStructure());
-        addColor(1);
+        addColor();
         isShading = false;
         console.log(colorsList);
         gl.useProgram(program);
         render();
-    })
+    });
 
     document.getElementById("shading").addEventListener("click", function(event) {
         buildTree(randomTreeStructure());
@@ -207,7 +205,18 @@ window.onload = function init() {
         isShading = true;
         gl.useProgram(shading);
         render();
-    })
+    });
+
+    document.getElementById("slide-base").addEventListener("change", function () {
+       modelViewMatrix = mult(modelViewMatrix,rotate(event.srcElement.value, [0,1,0]));
+        render();
+    });
+    document.getElementById("apply-translate").addEventListener("click", function (){
+        let y = parseInt(document.getElementById("y-translate").value);
+        modelViewMatrix = mult(modelViewMatrix,translate(0,y,0));
+        render();
+    });
+
 
 
     render();
@@ -219,6 +228,9 @@ function randomTreeStructure()
     for (let i = 0; i < size; i++) {
         treeArray[i] = returnRandom(minBranchCount,maxBranchCount, false);
     }
+
+    treeArray = [1];
+
     let result = constructTree(treeArray);
     console.log(result);
     return result
@@ -230,14 +242,22 @@ function buildTree(root)
     let finalTransformsList = traverseTree(root);
     console.log(finalTransformsList);
     console.log(unitCylinder);
+
+    //let m = finalTransformsList[2];
+    //let v = unitCylinder[11];
+
+    //console.log(matMultVec(m,v));
+
     for (const e of finalTransformsList) {
         for (const vertex of unitCylinder) {
-            let t = mult(mat4(vertex),e)[0]
-            t.w = 1;
-            mainVertexList.push(t);
+            mainVertexList.push(matMultVec(e,vertex));
         }
     }
+
+    //mainVertexList = [[0,0,0,1],[1,0,0,1], [0,1,0,1]];
     console.log(mainVertexList);
+
+    numOfVertices = mainVertexList.length;
 
 }
 
@@ -264,7 +284,7 @@ function addColor(cIndex)
 {
     colorsList = [];
     for (const v of mainVertexList) {
-        colorsList.push(colors[cIndex]);
+        colorsList.push(colors[returnRandom(0,7, false)]);
     }
 }
 
@@ -273,6 +293,7 @@ const render = function () {
 
     if (isShading)
     {
+        gl.uniformMatrix4fv( gl.getUniformLocation(shading, "modelViewMatrix"),  false, flatten(modelViewMatrix) );
         for (let i = 0; i < numOfVertices; i++) {
             gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer );
             gl.bufferSubData( gl.ARRAY_BUFFER, 8 * i, flatten(mainVertexList[i]) );
@@ -282,16 +303,18 @@ const render = function () {
         }
 
     }else {
+        gl.uniformMatrix4fv( gl.getUniformLocation(program, "modelViewMatrix"),  false, flatten(modelViewMatrix) );
         for (let i = 0; i < numOfVertices; i++) {
             gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer );
             gl.bufferSubData( gl.ARRAY_BUFFER, 8 * i, flatten(mainVertexList[i]) );
 
-            gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer );
+            gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer );
             gl.bufferSubData( gl.ARRAY_BUFFER, 16 * i, flatten(colorsList[i]));
         }
     }
 
-    //gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
-    gl.drawArrays(gl.TRIANGLES, 0, numOfVertices);
-    requestAnimFrame(render);
+    for (let i = 0; i < numOfVertices; i += 1) {
+        gl.drawArrays(gl.TRIANGLES, i * 3, 3);
+    }
+
 };

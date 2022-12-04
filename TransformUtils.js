@@ -105,20 +105,30 @@ function generateCylinder(cr = 0.5, cyheight = 1, ratio = 0.75) {
 function cylinderTransformMatrix(yScale, zRot, yRot, yShift) {
     let sMat = scale([1.0, yScale, 1.0]);
 
-    let rotateZ = rotate(zRot, vec3(0, 0, 1));
-    let rotateY = rotate(yRot, vec3(0, 1, 0));
+    let rotateZ = rotate(zRot, [0,0,1]);
+    let rotateY = rotate(yRot, [0,1,0]);
     let rMat = mult(rotateZ, rotateY);
-
     let tMat = translate(0, yShift, 0);
 
     let returnMatrix = mat4();
     returnMatrix = mult(returnMatrix,sMat);
     returnMatrix = mult(returnMatrix,rMat);
     returnMatrix = mult(returnMatrix,tMat);
+
     return returnMatrix;
 }
 
 function returnRandom(start, end, float = true) {
     if(float) return (start + Math.random() * (end - start));
     return Math.floor((start + Math.random() * (end - start)));
+}
+
+function matMultVec(matr, vect){
+    let m = vec4();
+    for (let i = 0; i < 4; i++){
+        m[i] = 0;
+        for (let j = 0; j < 4; j++)
+            m[i] += matr[i][j] * vect[j];
+    }
+    return m;
 }

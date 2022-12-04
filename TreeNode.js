@@ -2,7 +2,6 @@ class TreeNode {
     id = 0;
     localTransform = mat4();
     children = [];
-    drawn = false;
     parentYScale = -1;
     ownYScale = 1;
     parent = null;
@@ -59,8 +58,9 @@ function constructTree(arrayIn)
         }
         nodeList = tempList;
     }
-
-    root.localTransform = cylinderTransformMatrix(10,0,0,0)
+    yScale = 1;
+    root.localTransform = cylinderTransformMatrix(yScale,0,0,0)
+    root.ownYScale = yScale;
 
     return root;
 }
