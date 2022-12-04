@@ -224,7 +224,9 @@ function buildTree(root)
     console.log(mult(mat4(unitCylinder[14]),finalTransformsList[0])[0]);
     for (const e of finalTransformsList) {
         for (const vertex of unitCylinder) {
-            mainVertexList.push(mult(mat4(vertex),e)[0]);
+            let t = mult(mat4(vertex),e)[0]
+            t.w = 1;
+            mainVertexList.push(t);
         }
     }
     console.log(mainVertexList);
