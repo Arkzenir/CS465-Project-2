@@ -38,22 +38,14 @@ function constructTree(arrayIn)
                 if (i !== 0){
                     t.parent = nodeList[k];
                     t.parentYScale = nodeList[k].ownYScale;
-                    //randomise localTransform here
-                    yScale = returnRandom(1,maxLength);
-                    t.ownYScale = yScale;
-                    zRot = returnRandom(10,160);
-                    yRot = returnRandom(0,359);
-                    yShift = returnRandom(0,t.parentYScale);
-
-                }
-                else {
-                    yScale = 10;
-                    zRot = 0;
-                    yRot = 0;
-                    yShift = 0;
                 }
 
-
+                //randomise localTransform here
+                yScale = returnRandom(1,maxLength);
+                t.ownYScale = yScale;
+                zRot = returnRandom(10,160);
+                yRot = returnRandom(0,359);
+                yShift = returnRandom(0,t.parentYScale);
 
                 console.log(yScale);
                 console.log(zRot);
@@ -71,6 +63,9 @@ function constructTree(arrayIn)
         }
         nodeList = tempList;
     }
+
+    root.localTransform = cylinderTransformMatrix(10,0,0,0)
+
     return root;
 }
 
