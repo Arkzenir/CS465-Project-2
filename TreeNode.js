@@ -47,10 +47,6 @@ function constructTree(arrayIn)
                 yRot = returnRandom(0,359);
                 yShift = returnRandom(0,t.parentYScale);
 
-                console.log(yScale);
-                console.log(zRot);
-                console.log(yRot);
-                console.log(yShift);
                 t.localTransform = cylinderTransformMatrix(yScale,zRot,yRot,yShift);
 
                 nodeList[k].children.push(t);

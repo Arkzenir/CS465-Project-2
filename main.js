@@ -127,6 +127,15 @@ window.onload = function init() {
     shading = initShaders(gl, "shading-shader", "fragment-shader");
     selector = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);
+    modelViewMatrix = mat4();
+    projectionMatrix = ortho(-2, 2, -2, 2, -2, 2);
+
+    gl.uniformMatrix4fv( gl.getUniformLocation(program, "modelViewMatrix"),  false, flatten(modelViewMatrix) );
+    gl.uniformMatrix4fv( gl.getUniformLocation(program, "projectionMatrix"),  false, flatten(projectionMatrix) );
+    gl.useProgram(shading);
+    gl.uniformMatrix4fv( gl.getUniformLocation(shading, "modelViewMatrix"),  false, flatten(modelViewMatrix) );
+    gl.uniformMatrix4fv( gl.getUniformLocation(shading, "projectionMatrix"),  false, flatten(projectionMatrix) );
+    gl.useProgram(program);
 
     //Initialize the frame buffer manager
     idRGBAConvert = new ColorToID;
@@ -164,8 +173,7 @@ window.onload = function init() {
 
     //modelViewMatrixLoc = gl.getUniformLocation(program, "modelViewMatrix");
 
-    projectionMatrix = ortho(-2, 2, -2, 2, -2, 2);
-    gl.uniformMatrix4fv( gl.getUniformLocation(program, "projectionMatrix"),  false, flatten(projectionMatrix) );
+
 
     let ambientProduct = mult(lightAmbient, materialAmbient);
     let diffuseProduct = mult(lightDiffuse, materialDiffuse);
@@ -211,8 +219,9 @@ function randomTreeStructure()
     for (let i = 0; i < size; i++) {
         treeArray[i] = returnRandom(minBranchCount,maxBranchCount, false);
     }
-
-    return constructTree(treeArray);
+    let result = constructTree(treeArray);
+    console.log(result);
+    return result
 }
 
 function buildTree(root)
@@ -221,7 +230,6 @@ function buildTree(root)
     let finalTransformsList = traverseTree(root);
     console.log(finalTransformsList);
     console.log(unitCylinder);
-    console.log(mult(mat4(unitCylinder[14]),finalTransformsList[0])[0]);
     for (const e of finalTransformsList) {
         for (const vertex of unitCylinder) {
             let t = mult(mat4(vertex),e)[0]
@@ -267,7 +275,7 @@ const render = function () {
     {
         for (let i = 0; i < numOfVertices; i++) {
             gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer );
-            gl.bufferData( gl.ARRAY_BUFFER, 8 * i, flatten(mainVertexList[i]) );
+            gl.bufferSubData( gl.ARRAY_BUFFER, 8 * i, flatten(mainVertexList[i]) );
 
             gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer );
             gl.bufferSubData( gl.ARRAY_BUFFER, 8 * i, flatten(normalsList[i]));
@@ -276,7 +284,7 @@ const render = function () {
     }else {
         for (let i = 0; i < numOfVertices; i++) {
             gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer );
-            gl.bufferData( gl.ARRAY_BUFFER, 8 * i, flatten(mainVertexList[i]) );
+            gl.bufferSubData( gl.ARRAY_BUFFER, 8 * i, flatten(mainVertexList[i]) );
 
             gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer );
             gl.bufferSubData( gl.ARRAY_BUFFER, 16 * i, flatten(colorsList[i]));
