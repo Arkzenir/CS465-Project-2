@@ -2,10 +2,19 @@ let canvas;
 let rect;
 let gl;
 
-const MAX_CYLINDER_COUNT = 120;
+const MAX_CYLINDER_COUNT = 150;
 const VERTICES_PER_CYLINDER = 240;
 const maxNumVertices = MAX_CYLINDER_COUNT * VERTICES_PER_CYLINDER;
 let numOfVertices = 0;
+
+let unitCylinder;
+//Tree variables
+let minLevels = 2;
+let maxLevels = 5;
+let minBranchCount = 2;
+let maxBranchCount = 4;
+
+let treeArray = [];
 
 let cIndex = 0;
 let in1, in2, in3, in4 = vec2(0, 0);
@@ -14,10 +23,86 @@ const indicatorColor = vec4(1.0,0.65,0.0,1); //bright orange
 let modelViewMatrix, projectionMatrix;
 let vBuffer;
 let cBuffer;
+let nBuffer;
 let program;
 let selector;
+let shading;
+
+let isShading = false;
+
+let modelViewMatrixLoc;
 
 let mainVertexList = [];
+let normalsList = [];
+let colorsList = [];
+
+const colors = [
+    vec4(0.0, 0.0, 0.0, 1.0),  // black
+    vec4(1.0, 0.0, 0.0, 1.0),  // red
+    vec4(1.0, 1.0, 0.0, 1.0),  // yellow
+    vec4(0.0, 1.0, 0.0, 1.0),  // green
+    vec4(0.0, 0.0, 1.0, 1.0),  // blue
+    vec4(1.0, 0.0, 1.0, 1.0),  // magenta
+    vec4(0.0, 1.0, 1.0, 1.0),  // cyan
+    vec4(1.0, 1.0, 1.0, 1.0)   // white
+];
+
+const lightPosition = vec4(1.0, 1.0, 1.0, 0.0);
+const lightAmbient = vec4(0.2, 0.2, 0.2, 1.0);
+const lightDiffuse = vec4(1.0, 1.0, 1.0, 1.0);
+const lightSpecular = vec4(1.0, 1.0, 1.0, 1.0);
+
+const materialAmbient = vec4(1.0, 0.0, 1.0, 1.0);
+const materialDiffuse = vec4(1.0, 0.8, 0.0, 1.0);
+const materialSpecular = vec4(1.0, 0.8, 0.0, 1.0);
+const materialShininess = 100.0;
+
+let ctm;
+let ambientColor, diffuseColor, specularColor;
+let viewerPos;
+
+//Frame buffer implementation of polygon index - RGBA transformations
+class ColorToID{
+    redBits = gl.getParameter(gl.RED_BITS);
+    greenBits = gl.getParameter(gl.GREEN_BITS);
+    blueBits = gl.getParameter(gl.BLUE_BITS);
+    alphaBits = gl.getParameter(gl.ALPHA_BITS);
+
+    redShift = Math.pow(2, this.greenBits + this.blueBits + this.alphaBits);
+    greenShift = Math.pow(2, this.blueBits + this.alphaBits);
+    blueShift = Math.pow(2, this.alphaBits);
+
+    color = new Float32Array(4);
+
+    //Get integer ID for a given RGBA value
+    getID(r, g, b, a) {
+        // Shift each component to its bit position in the integer
+        return (r * this.redShift + g * this.greenShift + b * this.blueShift + a);
+    }
+
+    //Get RGBA value from given id
+    createColor(id) {
+        let r, g, b, a;
+
+        r = Math.floor(id / this.redShift);
+        id = id - (r * this.redShift);
+
+        g = Math.floor(id / this.greenShift);
+        id = id - (g * this.greenShift);
+
+        b = Math.floor(id / this.blueShift);
+        id = id - (b * this.blueShift);
+
+        a = id;
+
+        this.color[0] = r / (Math.pow(2, this.redBits) - 1);
+        this.color[1] = g / (Math.pow(2, this.greenBits) - 1);
+        this.color[2] = b / (Math.pow(2, this.blueBits) - 1);
+        this.color[3] = a / (Math.pow(2, this.alphaBits) - 1);
+
+        return this.color;
+    }
+}
 
 let idRGBAConvert;
 let pixel;
@@ -33,6 +118,8 @@ window.onload = function init() {
     gl.clearColor(0.85, 0.85, 0.85, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    unitCylinder = generateCylinder();
+
     //
     //  Load shaders and initialize attribute buffers
     //
@@ -40,11 +127,6 @@ window.onload = function init() {
     shading = initShaders(gl, "shading-shader", "fragment-shader");
     selector = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);
-
-    let modelViewMatrixLoc = gl.getUniformLocation(program, "modelViewMatrix");
-
-    projectionMatrix = ortho(-2, 2, -2, 2, -2, 2);
-    gl.uniformMatrix4fv( gl.getUniformLocation(program, "projectionMatrix"),  false, flatten(projectionMatrix) );
 
     //Initialize the frame buffer manager
     idRGBAConvert = new ColorToID;
@@ -58,6 +140,18 @@ window.onload = function init() {
     gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPosition);
 
+    const vPositionShading = gl.getAttribLocation(shading, "vPosition");
+    gl.vertexAttribPointer(vPositionShading, 4, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vPositionShading);
+
+    nBuffer = gl.createBuffer();
+    gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer );
+    gl.bufferData( gl.ARRAY_BUFFER, 8 * maxNumVertices, gl.STATIC_DRAW );
+
+    const vNormal = gl.getAttribLocation(shading, "vNormal");
+    gl.vertexAttribPointer( vNormal, 3, gl.FLOAT, false, 0, 0 );
+    gl.enableVertexAttribArray( vNormal );
+
     cBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, 16 * maxNumVertices, gl.STATIC_DRAW);
@@ -66,15 +160,128 @@ window.onload = function init() {
     gl.vertexAttribPointer(vColor, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vColor);
 
-    console.log(canvas);
-
     rect = canvas.getBoundingClientRect();
+
+    //modelViewMatrixLoc = gl.getUniformLocation(program, "modelViewMatrix");
+
+    projectionMatrix = ortho(-2, 2, -2, 2, -2, 2);
+    gl.uniformMatrix4fv( gl.getUniformLocation(program, "projectionMatrix"),  false, flatten(projectionMatrix) );
+
+    let ambientProduct = mult(lightAmbient, materialAmbient);
+    let diffuseProduct = mult(lightDiffuse, materialDiffuse);
+    let specularProduct = mult(lightSpecular, materialSpecular);
+
+    gl.uniform4fv(gl.getUniformLocation(program, "ambientProduct"),
+        flatten(ambientProduct));
+    gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"),
+        flatten(diffuseProduct) );
+    gl.uniform4fv(gl.getUniformLocation(program, "specularProduct"),
+        flatten(specularProduct) );
+    gl.uniform4fv(gl.getUniformLocation(program, "lightPosition"),
+        flatten(lightPosition) );
+
+    gl.uniform1f(gl.getUniformLocation(program,
+        "shininess"),materialShininess);
+
+    document.getElementById("flat").addEventListener("click", function(event) {
+        buildTree(randomTreeStructure());
+        addColor(1);
+        isShading = false;
+        console.log(colorsList);
+        gl.useProgram(program);
+        render();
+    })
+
+    document.getElementById("shading").addEventListener("click", function(event) {
+        buildTree(randomTreeStructure());
+        computeNormals();
+        console.log(normalsList);
+        isShading = true;
+        gl.useProgram(shading);
+        render();
+    })
+
+
+    render();
 }
 
-var render = function() {
-    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
+function randomTreeStructure()
+{
+    let size = returnRandom(minLevels,maxLevels,false);
+    for (let i = 0; i < size; i++) {
+        treeArray[i] = returnRandom(minBranchCount,maxBranchCount, false);
+    }
 
-    gl.uniformMatrix4fv(modelViewMatrixLoc,  false, flatten(modelViewMatrix) );
-    gl.drawArrays( gl.TRIANGLES, 0, numOfVertices );
+    return constructTree(treeArray);
+}
+
+function buildTree(root)
+{
+    mainVertexList = [];
+    let finalTransformsList = traverseTree(root);
+    console.log(finalTransformsList);
+    console.log(unitCylinder);
+    console.log(mult(mat4(unitCylinder[14]),finalTransformsList[0])[0]);
+    for (const e of finalTransformsList) {
+        for (const vertex of unitCylinder) {
+            mainVertexList.push(mult(mat4(vertex),e)[0]);
+        }
+    }
+    console.log(mainVertexList);
+
+}
+
+function computeNormals()
+{
+    normalsList = [];
+    let t1;
+    let t2;
+    let normal_temp;
+    let normal;
+    for (let i = 0; i < mainVertexList.length; i += 3) {
+        t1 = subtract(mainVertexList[i+1], mainVertexList[i]);
+        t2 = subtract(mainVertexList[i+2], mainVertexList[i+1]);
+        normal_temp = cross(t1, t2);
+        normal = vec3(normal_temp);
+
+        normalsList.push(normal);
+        normalsList.push(normal);
+        normalsList.push(normal);
+    }
+}
+
+function addColor(cIndex)
+{
+    colorsList = [];
+    for (const v of mainVertexList) {
+        colorsList.push(colors[cIndex]);
+    }
+}
+
+const render = function () {
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    if (isShading)
+    {
+        for (let i = 0; i < numOfVertices; i++) {
+            gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer );
+            gl.bufferData( gl.ARRAY_BUFFER, 8 * i, flatten(mainVertexList[i]) );
+
+            gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer );
+            gl.bufferSubData( gl.ARRAY_BUFFER, 8 * i, flatten(normalsList[i]));
+        }
+
+    }else {
+        for (let i = 0; i < numOfVertices; i++) {
+            gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer );
+            gl.bufferData( gl.ARRAY_BUFFER, 8 * i, flatten(mainVertexList[i]) );
+
+            gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer );
+            gl.bufferSubData( gl.ARRAY_BUFFER, 16 * i, flatten(colorsList[i]));
+        }
+    }
+
+    //gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
+    gl.drawArrays(gl.TRIANGLES, 0, numOfVertices);
     requestAnimFrame(render);
-}
+};
