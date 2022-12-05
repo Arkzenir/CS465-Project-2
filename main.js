@@ -33,6 +33,7 @@ let selector;
 let shading;
 
 let isShading = false;
+let isWire = false;
 
 let modelViewMatrixLoc;
 
@@ -209,6 +210,7 @@ window.onload = function init() {
         buildTree(randomTreeStructure());
         addColor();
         isShading = false;
+        isWire = false;
         console.log(colorsList);
         gl.useProgram(program);
         render();
@@ -219,7 +221,19 @@ window.onload = function init() {
         computeNormals();
         console.log(normalsList);
         isShading = true;
+        isWire = false;
         gl.useProgram(shading);
+        render();
+    });
+
+    document.getElementById("wire").addEventListener("click", function(event) {
+        buildTree(randomTreeStructure());
+        isWire = true;
+        addColor();
+        isShading = false;
+
+        console.log(colorsList);
+        gl.useProgram(program);
         render();
     });
 
@@ -318,7 +332,7 @@ function computeNormals()
 
 }
 
-function addColor(cIndex)
+function addColor()
 {
     colorsList = [];
 
@@ -332,7 +346,12 @@ function addColor(cIndex)
          */
         for (const v of mainVertexList) {
             //let c = colors[returnRandom(0,7, false)];
-            colorsList.push(treeColor);
+            if (!isWire) {
+                colorsList.push(treeColor);
+            }
+            else {
+                colorsList.push(colors[0]);
+            }
         }
     }
 
@@ -364,8 +383,18 @@ const render = function () {
         }
     }
 
-    for (let i = 0; i < numOfVertices; i += 3) {
-        gl.drawArrays(gl.TRIANGLES, i, 3);
+    if (isWire && !isShading)
+    {
+        for (let i = 0; i < numOfVertices; i += 12) {
+            gl.drawArrays(gl.LINE_LOOP, i, 3);
+        }
     }
+    else if (!isWire)
+    {
+        for (let i = 0; i < numOfVertices; i += 3) {
+            gl.drawArrays(gl.TRIANGLES, i, 3);
+        }
+    }
+
 
 };
