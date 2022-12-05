@@ -1,5 +1,5 @@
 
-function generateCylinder(cr = 0.5, cyheight = 1, ratio = 0.75) {
+function generateCylinder(cr = 0.15, cyheight = 1, ratio = 1) {
     const cylinderAngle = Math.PI / 180 * 18; // 18 degrees, 90/5
     const baseVerticeNum = 21;
     // cr = cylinder radius
@@ -102,8 +102,8 @@ function generateCylinder(cr = 0.5, cyheight = 1, ratio = 0.75) {
     return points;
 }
 
-function cylinderTransformMatrix(yScale, zRot, yRot, yShift) {
-    let sMat = scale([1.0, yScale, 1.0]);
+function cylinderTransformMatrix(xScale = 1, yScale, zRot, yRot, yShift) {
+    let sMat = scale([xScale, yScale, xScale]);
 
     let rotateZ = rotate(zRot, [0,0,1]);
     let rotateY = rotate(yRot, [0,1,0]);
@@ -111,9 +111,12 @@ function cylinderTransformMatrix(yScale, zRot, yRot, yShift) {
     let tMat = translate(0, yShift, 0);
 
     let returnMatrix = mat4();
+
     returnMatrix = mult(returnMatrix,sMat);
-    returnMatrix = mult(returnMatrix,rMat);
     returnMatrix = mult(returnMatrix,tMat);
+    returnMatrix = mult(returnMatrix,rotateZ);
+    returnMatrix = mult(returnMatrix,rotateY);
+
 
     return returnMatrix;
 }

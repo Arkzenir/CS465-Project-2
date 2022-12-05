@@ -13,8 +13,10 @@ function constructTree(arrayIn)
     let nodeList = [root];
     let index = 1;
 
-    let maxLength = 5;
+    let maxLength = 3.0;
+    let currLength = maxLength;
 
+    let xScale;
     let yScale;
     let zRot;
     let yRot;
@@ -31,24 +33,24 @@ function constructTree(arrayIn)
 
         //randomisedCount = arrayIn[i] + ((Math.floor((Math.random() * 3)) - 1) * randAmt);
         for (let j = 0; j < arrayIn[i]; j++) {
-            for (let k = 0; k < nodeList.length; k++) {
+            for (const n of nodeList) {
                 const t = new TreeNode();
                 t.id = index;
                 if (i !== 0){
-                    t.parent = nodeList[k];
-                    t.parentYScale = nodeList[k].ownYScale;
+                    t.parent = n;
+                    t.parentYScale = n.ownYScale;
                 }
 
                 //randomise localTransform here
                 yScale = returnRandom(1,maxLength);
                 t.ownYScale = yScale;
-                zRot = returnRandom(10,160);
+                zRot = returnRandom(10,90);
                 yRot = returnRandom(0,359);
-                yShift = returnRandom(0,t.parentYScale);
+                yShift = returnRandom(0.3,1);
 
-                t.localTransform = cylinderTransformMatrix(yScale,zRot,yRot,yShift);
-
-                nodeList[k].children.push(t);
+                //t.localTransform = cylinderTransformMatrix((currLength/maxLength) / 1.5, 1,zRot,yRot,yShift);
+                t.localTransform = cylinderTransformMatrix(1, 0.5,zRot,yRot,yShift);
+                n.children.push(t);
                 index++;
             }
         }
@@ -57,9 +59,11 @@ function constructTree(arrayIn)
             tempList.push(...node.children);
         }
         nodeList = tempList;
+        currLength -= 1.5;
     }
-    yScale = 1;
-    root.localTransform = cylinderTransformMatrix(yScale,0,0,0)
+    xScale = 0.75;
+    yScale = 4;
+    root.localTransform = cylinderTransformMatrix(xScale, yScale,0,0,0)
     root.ownYScale = yScale;
 
     return root;
