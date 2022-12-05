@@ -53,8 +53,8 @@ const colors = [
 
 const treeColor = vec4(131/255.0, 76/255.0, 21/255.0, 1.0);
 
-const lightPosition = vec4(1.0, 1.0, 0.0, 0.0);
-const lightAmbient = vec4(0.2, 0.2, 0.2, 1.0);
+const lightPosition = vec4(1.0, 1.0, 1.0, 0.0);
+const lightAmbient = vec4(0.5, 0.5, 0.5, 1.0);
 const lightDiffuse = vec4(1.0, 1.0, 1.0, 1.0);
 const lightSpecular = vec4(1.0, 1.0, 1.0, 1.0);
 
@@ -191,17 +191,19 @@ window.onload = function init() {
     let diffuseProduct = mult(lightDiffuse, materialDiffuse);
     let specularProduct = mult(lightSpecular, materialSpecular);
 
-    gl.uniform4fv(gl.getUniformLocation(program, "ambientProduct"),
+    gl.useProgram(shading);
+    gl.uniform4fv(gl.getUniformLocation(shading, "ambientProduct"),
         flatten(ambientProduct));
-    gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"),
+    gl.uniform4fv(gl.getUniformLocation(shading, "diffuseProduct"),
         flatten(diffuseProduct) );
-    gl.uniform4fv(gl.getUniformLocation(program, "specularProduct"),
+    gl.uniform4fv(gl.getUniformLocation(shading, "specularProduct"),
         flatten(specularProduct) );
-    gl.uniform4fv(gl.getUniformLocation(program, "lightPosition"),
+    gl.uniform4fv(gl.getUniformLocation(shading, "lightPosition"),
         flatten(lightPosition) );
 
-    gl.uniform1f(gl.getUniformLocation(program,
+    gl.uniform1f(gl.getUniformLocation(shading,
         "shininess"),materialShininess);
+    gl.useProgram(program);
 
     document.getElementById("flat").addEventListener("click", function(event) {
         buildTree(randomTreeStructure());
@@ -247,9 +249,6 @@ window.onload = function init() {
 
     document.getElementById("reset-camera").addEventListener("click", function (){
         modelViewMatrix = mat4();
-
-
-
         render();
     });
 
@@ -304,9 +303,10 @@ function computeNormals()
     let t2;
     let normal_temp;
     let normal;
+
     for (let i = 0; i < mainVertexList.length; i += 3) {
         t1 = subtract(mainVertexList[i+1], mainVertexList[i]);
-        t2 = subtract(mainVertexList[i+2], mainVertexList[i+1]);
+        t2 = subtract(mainVertexList[i+2], mainVertexList[i]);
         normal_temp = cross(t1, t2);
         normal = vec3(normal_temp);
 
