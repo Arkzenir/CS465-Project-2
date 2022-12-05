@@ -251,9 +251,8 @@ window.onload = function init() {
 
     document.getElementById("apply-zoom").addEventListener("click", function (){
         let o = parseFloat(document.getElementById("z-translate").value);
-        orthoUnit = o;
 
-        projectionMatrix = ortho(-orthoUnit, orthoUnit, -orthoUnit, orthoUnit, -orthoUnit, orthoUnit);
+        projectionMatrix = ortho(-o, o, -o, o, -o, o);
         gl.uniformMatrix4fv( gl.getUniformLocation(program, "projectionMatrix"),  false, flatten(projectionMatrix) );
         gl.useProgram(shading);
         gl.uniformMatrix4fv( gl.getUniformLocation(shading, "projectionMatrix"),  false, flatten(projectionMatrix) );
@@ -263,6 +262,11 @@ window.onload = function init() {
 
     document.getElementById("reset-camera").addEventListener("click", function (){
         modelViewMatrix = mat4();
+        projectionMatrix = ortho(-orthoUnit, orthoUnit, -orthoUnit, orthoUnit, -orthoUnit, orthoUnit);
+        gl.uniformMatrix4fv( gl.getUniformLocation(program, "projectionMatrix"),  false, flatten(projectionMatrix) );
+        gl.useProgram(shading);
+        gl.uniformMatrix4fv( gl.getUniformLocation(shading, "projectionMatrix"),  false, flatten(projectionMatrix) );
+        gl.useProgram(program);
         render();
     });
 
