@@ -2,8 +2,12 @@ class TreeNode {
     id = 0;
     localTransform = mat4();
     children = [];
-    parentYScale = -1;
+    parentYScale = 1;
+    parentYRot = 180;
+    parentYShift = 0;
     ownYScale = 1;
+    ownYRot = 180;
+    ownYShift = 0;
     parent = null;
 }
 //treeAsArray = [4,3,3,2]; // 1 trunk, 4 branches that have 3 branches that have 3 branches that have 2 branches
@@ -13,8 +17,7 @@ function constructTree(arrayIn)
     let nodeList = [root];
     let index = 1;
 
-    let maxLength = 3.0;
-    let currLength = maxLength;
+    let maxLength = 4.0;
 
     let xScale;
     let yScale;
@@ -38,18 +41,28 @@ function constructTree(arrayIn)
                 t.id = index;
                 if (i !== 0){
                     t.parent = n;
-                    t.parentYScale = n.ownYScale;
+                    t.parentYScale = t.parent.ownYScale;
+                    t.parentYRot = t.parent.ownYRot;
+                    t.parentYShift = t.parent.ownYShift;
+
                 }
 
                 //randomise localTransform here
-                yScale = returnRandom(1,maxLength);
+                yScale = returnRandom(0.5,1);
+                //yScale = 0.5;
+
+                zRot = returnRandom(10,65);
+                yRot = returnRandom(10,350);
+                yShift = returnRandom(0.2,0.75);
+
+                //console.log(yRot);
+
                 t.ownYScale = yScale;
-                zRot = returnRandom(10,90);
-                yRot = returnRandom(0,359);
-                yShift = returnRandom(0.3,1);
+                t.ownYRot = yRot;
+                t.ownYShift = yShift;
 
                 //t.localTransform = cylinderTransformMatrix((currLength/maxLength) / 1.5, 1,zRot,yRot,yShift);
-                t.localTransform = cylinderTransformMatrix(1, 0.5,zRot,yRot,yShift);
+                t.localTransform = cylinderTransformMatrix(0.5, yScale ,zRot,yRot ,yShift);
                 n.children.push(t);
                 index++;
             }
@@ -59,11 +72,10 @@ function constructTree(arrayIn)
             tempList.push(...node.children);
         }
         nodeList = tempList;
-        currLength -= 1.5;
     }
-    xScale = 0.75;
-    yScale = 4;
-    root.localTransform = cylinderTransformMatrix(xScale, yScale,0,0,0)
+    xScale = 0.85;
+    yScale = maxLength;
+    root.localTransform = cylinderTransformMatrix(xScale, yScale,0,0,-0.5)
     root.ownYScale = yScale;
 
     return root;

@@ -51,7 +51,9 @@ const colors = [
     vec4(1.0, 1.0, 1.0, 1.0)   // white
 ];
 
-const lightPosition = vec4(5.0, 5.0, 5.0, 0.0);
+const treeColor = vec4(131/255.0, 76/255.0, 21/255.0, 1.0);
+
+const lightPosition = vec4(1.0, 1.0, 0.0, 0.0);
 const lightAmbient = vec4(0.2, 0.2, 0.2, 1.0);
 const lightDiffuse = vec4(1.0, 1.0, 1.0, 1.0);
 const lightSpecular = vec4(1.0, 1.0, 1.0, 1.0);
@@ -150,7 +152,7 @@ window.onload = function init() {
 
     vBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, 8 * maxNumVertices, gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, 16 * maxNumVertices, gl.STATIC_DRAW);
 
     const vPosition = gl.getAttribLocation(program, "vPosition");
     gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
@@ -162,7 +164,7 @@ window.onload = function init() {
 
     nBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer );
-    gl.bufferData( gl.ARRAY_BUFFER, 8 * maxNumVertices, gl.STATIC_DRAW );
+    gl.bufferData( gl.ARRAY_BUFFER, 12 * maxNumVertices, gl.STATIC_DRAW );
 
     const vNormal = gl.getAttribLocation(shading, "vNormal");
     gl.vertexAttribPointer( vNormal, 3, gl.FLOAT, false, 0, 0 );
@@ -175,6 +177,9 @@ window.onload = function init() {
     const vColor = gl.getAttribLocation(program, "vColor");
     gl.vertexAttribPointer(vColor, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vColor);
+
+
+
 
     rect = canvas.getBoundingClientRect();
 
@@ -219,7 +224,7 @@ window.onload = function init() {
 
 
     document.getElementById("slide-base").addEventListener("change", function () {
-       modelViewMatrix = mult(modelViewMatrix,rotate(event.srcElement.value, [0,1,0]));
+       modelViewMatrix = rotate(event.srcElement.value, [0,1,0]);
         render();
     });
     document.getElementById("apply-translate").addEventListener("click", function (){
@@ -254,12 +259,12 @@ window.onload = function init() {
 function randomTreeStructure()
 {
     let size = returnRandom(minLevels,maxLevels,false);
-    for (let i = 0; i < size; i++) {
-        if (i === 0) treeArray[i] = returnRandom(minBaseBranchCount, maxBaseBranchCount, false);
+    treeArray[0] = returnRandom(minBaseBranchCount, maxBaseBranchCount, false);
+    for (let i = 1; i < size - 1; i++) {
         treeArray[i] = returnRandom(minBranchCount,maxBranchCount, false);
     }
 
-    treeArray = [1,2];
+    //treeArray = [3];
 
     let result = constructTree(treeArray);
     console.log(result);
@@ -309,6 +314,8 @@ function computeNormals()
         normalsList.push(normal);
         normalsList.push(normal);
     }
+
+
 }
 
 function addColor(cIndex)
@@ -324,8 +331,8 @@ function addColor(cIndex)
         }
          */
         for (const v of mainVertexList) {
-            let c = colors[returnRandom(0,7, false)];
-            colorsList.push(c);
+            //let c = colors[returnRandom(0,7, false)];
+            colorsList.push(treeColor);
         }
     }
 
@@ -343,7 +350,7 @@ const render = function () {
             gl.bufferSubData( gl.ARRAY_BUFFER, 16 * i, flatten(mainVertexList[i]) );
 
             gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer );
-            gl.bufferSubData( gl.ARRAY_BUFFER, 8 * i, flatten(normalsList[i]));
+            gl.bufferSubData( gl.ARRAY_BUFFER, 12 * i, flatten(normalsList[i]));
         }
 
     }else {

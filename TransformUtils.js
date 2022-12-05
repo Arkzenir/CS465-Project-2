@@ -112,10 +112,16 @@ function cylinderTransformMatrix(xScale = 1, yScale, zRot, yRot, yShift) {
 
     let returnMatrix = mat4();
 
-    returnMatrix = mult(returnMatrix,sMat);
+
+    //console.log(rotateY);
+    //console.log(rMat);
+
     returnMatrix = mult(returnMatrix,tMat);
-    returnMatrix = mult(returnMatrix,rotateZ);
-    returnMatrix = mult(returnMatrix,rotateY);
+    returnMatrix = mult(returnMatrix, rMat);
+    returnMatrix = mult(returnMatrix,sMat);
+    //returnMatrix = mult(returnMatrix,rotateZ);
+    //returnMatrix = mult(returnMatrix,rotateY);
+
 
 
     return returnMatrix;
