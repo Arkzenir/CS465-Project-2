@@ -11,3 +11,5 @@ Shaded render - Renders a random tree with smooth shading
 Wireframe render - Renders a random tree in wireframe
 
 Reset camera - Resets the camera to the starting settings
+
+You can demo it at: https://arkzenir.github.io/CS465-Tree-Shading/
